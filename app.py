@@ -175,6 +175,42 @@ def index():
     templates = db.execute('SELECT * FROM templates').fetchall()
     return render_template('index.html', templates=templates)
 
+@app.route('/preview_realtime/<int:template_id>', methods=['POST'])
+def preview_realtime(template_id):
+    db = get_db()
+    template = db.execute('SELECT * FROM templates WHERE id = ?', (template_id,)).fetchone()
+    if not template:
+        return "Template not found", 404
+        
+    cert_id = "preview"
+    serial = "CERT-2026-PREVIEW"
+    
+    recipient = request.form.get('recipient', 'Recipient Name')
+    course = request.form.get('course', 'Course Name')
+    title = request.form.get('title', 'CERTIFICATE TITLE')
+    date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
+    issuer = request.form.get('issuer', 'Issuer Name')
+    
+    # We don't handle file uploads for real-time preview to keep it fast
+    # but we could if needed. For now, just text.
+    
+    file_path = os.path.join('static/output', "preview_live.pdf")
+    
+    cert_data = {
+        'cert_id': cert_id,
+        'serial': serial,
+        'recipient': recipient,
+        'course': course,
+        'title': title,
+        'date': date,
+        'issuer': issuer,
+        'logo_path': None,
+        'sig_path': None
+    }
+    
+    generate_pdf(cert_data, template, file_path)
+    return send_file(file_path)
+
 @app.route('/generate/<int:template_id>', methods=['GET', 'POST'])
 def generate(template_id):
     db = get_db()

@@ -9,47 +9,72 @@
     <a href="/">← Back</a>
     <h1>Generate: {{ template.name }}</h1>
     
-    <form method="POST" enctype="multipart/form-data" id="cert-form">
-        <input type="hidden" name="action" id="form-action" value="preview">
-        <label>Certificate Title
-            <input type="text" name="title" value="CERTIFICATE OF APPRECIATION" required>
-        </label>
-        
-        <label>Recipient Name
-            <input type="text" name="recipient" placeholder="John Doe" required>
-        </label>
-        
-        <label>Course / Event Name
-            <input type="text" name="course" placeholder="Advanced Python Mastery" required>
-        </label>
-        
-        <label>Issue Date
-            <input type="date" name="date" required>
-        </label>
-        
-        <label>Issuer Organization
-            <input type="text" name="issuer" placeholder="Tech Academy" required>
-        </label>
-        
-        <label>Issuer Logo (Optional)
-            <input type="file" name="logo" accept="image/*">
-        </label>
-        
-        <label>Digital Signature (Optional)
-            <input type="file" name="signature" accept="image/*">
-        </label>
-        
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button type="button" onclick="submitForm('preview')" style="flex: 1;">Preview Certificate</button>
-            <button type="button" onclick="submitForm('download')" style="flex: 1; background-color: #2e7d32; color: white;">Direct Download</button>
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+        <div style="flex: 1;">
+            <form method="POST" enctype="multipart/form-data" id="cert-form">
+                <input type="hidden" name="action" id="form-action" value="download">
+                <label>Certificate Title
+                    <input type="text" name="title" value="CERTIFICATE OF APPRECIATION" required oninput="updatePreview()">
+                </label>
+                
+                <label>Recipient Name
+                    <input type="text" name="recipient" placeholder="John Doe" required oninput="updatePreview()">
+                </label>
+                
+                <label>Course / Event Name
+                    <input type="text" name="course" placeholder="Advanced Python Mastery" required oninput="updatePreview()">
+                </label>
+                
+                <label>Issue Date
+                    <input type="date" name="date" required oninput="updatePreview()">
+                </label>
+                
+                <label>Issuer Organization
+                    <input type="text" name="issuer" placeholder="Tech Academy" required oninput="updatePreview()">
+                </label>
+                
+                <label>Issuer Logo (Optional)
+                    <input type="file" name="logo" accept="image/*">
+                </label>
+                
+                <label>Digital Signature (Optional)
+                    <input type="file" name="signature" accept="image/*">
+                </label>
+                
+                <button type="submit" style="width: 100%; margin-top: 20px; background-color: #2e7d32; color: white;">Generate & Download PDF</button>
+            </form>
         </div>
-    </form>
+
+        <div style="flex: 1; position: sticky; top: 20px;">
+            <h3>Live Preview</h3>
+            <div id="preview-container" style="border: 1px solid #ccc; background: #eee; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                <iframe id="preview-iframe" style="width: 100%; height: 500px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
 
     <script>
-        function submitForm(action) {
-            document.getElementById('form-action').value = action;
-            document.getElementById('cert-form').submit();
+        let timeout = null;
+        function updatePreview() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const form = document.getElementById('cert-form');
+                const formData = new FormData(form);
+                
+                fetch(`/preview_realtime/{{ template.id }}`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('preview-iframe').src = url;
+                });
+            }, 500);
         }
+        
+        // Initial preview
+        window.onload = updatePreview;
     </script>
 </body>
 </html>
