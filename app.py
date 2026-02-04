@@ -67,6 +67,7 @@ with app.app_context():
             }
             
             for category, (bg_color, font, text_color, title_size) in categories.items():
+                count = 5 # Default count per category
                 for i in range(1, count + 1):
                     name = f"{category.capitalize()} Template {i}"
                     orientation = 'landscape' if (i % 2 == 0) else 'portrait'
@@ -175,7 +176,7 @@ def generate_pdf(cert_data, template, output_path):
         
     # QR Code
     qr_url = f"{request.host_url}verify/{cert_data['cert_id']}"
-    qr = qrcode.QRCode(version=1, box_size=10, border=1)
+    qr = qrcode.QRCode(version=1, box_size=5, border=1)
     qr.add_data(qr_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
