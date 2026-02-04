@@ -68,17 +68,26 @@ def init_db():
             for i in range(1, count + 1):
                 name = f"{category.capitalize()} Template {i}"
                 orientation = 'landscape' if (i % 2 == 0) else 'portrait'
+                
+                # Adjusting default config for better alignment
+                if orientation == 'landscape':
+                    width, height = landscape(A4)
+                else:
+                    width, height = portrait(A4)
+                
+                center_x = width / 2
+                
                 config = {
-                    "recipient": {"x": 400, "y": 300, "font": "Helvetica-Bold", "size": 36, "color": "#000000"},
-                    "title": {"x": 400, "y": 450, "font": "Helvetica-Bold", "size": 48, "color": "#1a1a1a"},
-                    "course": {"x": 400, "y": 250, "font": "Helvetica", "size": 24, "color": "#333333"},
-                    "date": {"x": 200, "y": 100, "font": "Helvetica", "size": 14, "color": "#666666"},
-                    "issuer": {"x": 600, "y": 100, "font": "Helvetica", "size": 14, "color": "#666666"},
-                    "signature_pos": {"x": 550, "y": 150, "width": 100, "height": 50},
-                    "logo_pos": {"x": 350, "y": 500, "width": 100, "height": 100},
-                    "qr_pos": {"x": 50, "y": 50, "size": 80},
-                    "serial_pos": {"x": 700, "y": 50, "font": "Helvetica", "size": 10, "color": "#999999"},
-                    "watermark": {"text": "ORIGINAL CERTIFICATE", "opacity": 0.1, "angle": 45, "size": 60}
+                    "recipient": {"x": center_x, "y": height * 0.45, "font": "Helvetica-Bold", "size": 36, "color": "#000000"},
+                    "title": {"x": center_x, "y": height * 0.7, "font": "Helvetica-Bold", "size": 48, "color": "#1a1a1a"},
+                    "course": {"x": center_x, "y": height * 0.35, "font": "Helvetica", "size": 24, "color": "#333333"},
+                    "date": {"x": width * 0.25, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
+                    "issuer": {"x": width * 0.75, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
+                    "signature_pos": {"x": width * 0.7, "y": height * 0.2, "width": 100, "height": 50},
+                    "logo_pos": {"x": center_x - 50, "y": height * 0.8, "width": 100, "height": 100},
+                    "qr_pos": {"x": width * 0.05, "y": height * 0.05, "size": 60},
+                    "serial_pos": {"x": width * 0.85, "y": height * 0.05, "font": "Helvetica", "size": 10, "color": "#999999"},
+                    "watermark": {"text": "ORIGINAL CERTIFICATE", "opacity": 0.05, "angle": 45, "size": 60}
                 }
                 cursor.execute(
                     'INSERT INTO templates (name, category, orientation, config_json) VALUES (?, ?, ?, ?)',
@@ -131,16 +140,16 @@ def generate_pdf(cert_data, template, output_path):
     # Date & Issuer
     dat = config['date']
     c.setFont(dat['font'], dat['size'])
-    c.drawString(dat['x'], dat['y'], f"Date: {cert_data['date']}")
+    c.drawCentredString(dat['x'], dat['y'], f"Date: {cert_data['date']}")
     
     iss = config['issuer']
     c.setFont(iss['font'], iss['size'])
-    c.drawString(iss['x'], iss['y'], f"Issuer: {cert_data['issuer']}")
+    c.drawCentredString(iss['x'], iss['y'], f"Issuer: {cert_data['issuer']}")
     
     # Serial
     ser = config['serial_pos']
     c.setFont(ser['font'], ser['size'])
-    c.drawString(ser['x'], ser['y'], f"Serial: {cert_data['serial']}")
+    c.drawCentredString(ser['x'], ser['y'], f"Serial: {cert_data['serial']}")
     
     # Logo
     if cert_data.get('logo_path'):
@@ -191,9 +200,6 @@ def preview_realtime(template_id):
     date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
     issuer = request.form.get('issuer', 'Issuer Name')
     
-    # We don't handle file uploads for real-time preview to keep it fast
-    # but we could if needed. For now, just text.
-    
     file_path = os.path.join('static/output', "preview_live.pdf")
     
     cert_data = {
@@ -222,7 +228,6 @@ def generate(template_id):
         action = request.form.get('action', 'download')
         cert_id = str(uuid.uuid4())
         
-        # Serial number generation
         cursor = db.cursor()
         cursor.execute('SELECT COUNT(*) FROM certificates')
         count = cursor.fetchone()[0] + 1
@@ -250,7 +255,6 @@ def generate(template_id):
         elif request.form.get('existing_sig'):
             sig_path = request.form.get('existing_sig')
             
-        # Integrity Hash
         data_to_hash = f"{serial}{recipient}{date}"
         cert_hash = hashlib.sha256(data_to_hash.encode()).hexdigest()
         
@@ -381,8 +385,6 @@ def verify(cert_id):
     
     status = "Invalid"
     if cert:
-        data_to_hash = f"{cert['serial']}{cert['recipient']}{cert['course']}" # simplified
-        # Real check should be against exactly what was stored
         status = "Valid"
         
     return render_template('verify.html', cert=cert, status=status)
