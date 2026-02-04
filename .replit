@@ -1,5 +1,5 @@
 entrypoint = "main.py"
-modules = ["python-3.11", "web"]
+modules = ["web", "python-3.11"]
 
 [nix]
 channel = "stable-25_05"
@@ -34,13 +34,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
 waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[ports]]
 localPort = 5000
