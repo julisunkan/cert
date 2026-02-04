@@ -2,61 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Generate Certificate - {{ template.name }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor - {{ template.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <a href="/">← Back</a>
-    <h1>Generate: {{ template.name }}</h1>
-    
-    <div style="display: flex; gap: 40px; align-items: flex-start;">
-        <div style="flex: 1;">
-            <form method="POST" enctype="multipart/form-data" id="cert-form">
-                <input type="hidden" name="action" id="form-action" value="download">
-                <label>Certificate Title
-                    <input type="text" name="title" value="CERTIFICATE OF APPRECIATION" required oninput="updatePreview()">
-                </label>
-                
-                <label>Recipient Name
-                    <input type="text" name="recipient" placeholder="John Doe" required oninput="updatePreview()">
-                </label>
-                
-                <label>Course / Event Name
-                    <input type="text" name="course" placeholder="Advanced Python Mastery" required oninput="updatePreview()">
-                </label>
-                
-                <label>Issue Date
-                    <input type="date" name="date" required oninput="updatePreview()">
-                </label>
-                
-                <label>Issuer Organization
-                    <input type="text" name="issuer" placeholder="Tech Academy" required oninput="updatePreview()">
-                </label>
-                
-                <label>Issuer Logo (Optional)
-                    <input type="file" name="logo" accept="image/*">
-                </label>
-                
-                <label>Digital Signature (Optional)
-                    <input type="file" name="signature" accept="image/*">
-                </label>
-                
-                <button type="submit" style="width: 100%; margin-top: 20px; background-color: #2e7d32; color: white;">Generate & Download PDF</button>
-            </form>
+    <div class="container">
+        <a href="/" class="btn btn-secondary" style="margin-bottom: 2rem;">← Back to Gallery</a>
+        
+        <div class="header" style="text-align: left;">
+            <h1>{{ template.name }}</h1>
+            <p>Fill in the details below to generate your certificate.</p>
         </div>
 
-        <div style="flex: 1; position: sticky; top: 20px;">
-            <h3>Live Preview</h3>
-            <div id="preview-container" style="border: 1px solid #ccc; background: #eee; min-height: 400px; display: flex; align-items: center; justify-content: center;">
-                <iframe id="preview-iframe" style="width: 100%; height: 500px; border: none;"></iframe>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
+            <div class="card animate-in">
+                <form method="POST" enctype="multipart/form-data" id="cert-form">
+                    <input type="hidden" name="action" id="form-action" value="download">
+                    
+                    <div class="form-group">
+                        <label>Certificate Title</label>
+                        <input type="text" name="title" value="CERTIFICATE OF ACHIEVEMENT" required oninput="updatePreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Recipient Name</label>
+                        <input type="text" name="recipient" placeholder="John Doe" required oninput="updatePreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Course / Event</label>
+                        <input type="text" name="course" placeholder="Project Management Essentials" required oninput="updatePreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Issue Date</label>
+                        <input type="date" name="date" required oninput="updatePreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Issuer Name</label>
+                        <input type="text" name="issuer" placeholder="Global Institute" required oninput="updatePreview()">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Logo (Optional)</label>
+                            <input type="file" name="logo" accept="image/*" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Signature (Optional)</label>
+                            <input type="file" name="signature" accept="image/*" onchange="updatePreview()">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 1rem;">
+                        ✨ Generate PDF
+                    </button>
+                </form>
+            </div>
+
+            <div class="preview-container animate-in" style="animation-delay: 0.2s">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="margin: 0;">Live Preview</h3>
+                    <span id="loading-indicator" style="display: none; font-size: 0.8rem; color: var(--primary);">Updating...</span>
+                </div>
+                <div style="border-radius: 0.5rem; overflow: hidden; background: white; box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);">
+                    <iframe id="preview-iframe" style="width: 100%; height: 600px; border: none;"></iframe>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         let timeout = null;
+        const loader = document.getElementById('loading-indicator');
+
         function updatePreview() {
             clearTimeout(timeout);
+            loader.style.display = 'inline';
             timeout = setTimeout(() => {
                 const form = document.getElementById('cert-form');
                 const formData = new FormData(form);
@@ -69,12 +93,20 @@
                 .then(blob => {
                     const url = URL.createObjectURL(blob);
                     document.getElementById('preview-iframe').src = url;
+                    loader.style.display = 'none';
+                })
+                .catch(() => {
+                    loader.style.display = 'none';
                 });
-            }, 500);
+            }, 800);
         }
         
         // Initial preview
-        window.onload = updatePreview;
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('input[type="date"]').value = today;
+            updatePreview();
+        };
     </script>
 </body>
 </html>

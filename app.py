@@ -21,80 +21,88 @@ ADMIN_SECRET_KEY = os.environ.get('ADMIN_SECRET_KEY', 'change-me')
 
 DATABASE = 'database.db'
 
+# Ensure DB is initialized
+with app.app_context():
+    def get_db():
+        conn = sqlite3.connect(DATABASE)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def init_db():
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS templates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                category TEXT,
+                orientation TEXT,
+                background TEXT,
+                config_json TEXT
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS certificates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cert_id TEXT,
+                serial TEXT,
+                template_id INTEGER,
+                recipient TEXT,
+                course TEXT,
+                issuer TEXT,
+                file_path TEXT,
+                hash TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Check if templates exist
+        cursor.execute('SELECT COUNT(*) FROM templates')
+        if cursor.fetchone()[0] == 0:
+            categories = {
+                'EDUCATION': 5,
+                'CHURCH & RELIGIOUS': 5,
+                'EVENTS & COMMUNITY': 5,
+                'BUSINESS & TRAINING': 5
+            }
+            
+            for category, count in categories.items():
+                for i in range(1, count + 1):
+                    name = f"{category.capitalize()} Template {i}"
+                    orientation = 'landscape' if (i % 2 == 0) else 'portrait'
+                    
+                    if orientation == 'landscape':
+                        width, height = landscape(A4)
+                    else:
+                        width, height = portrait(A4)
+                    
+                    center_x = width / 2
+                    
+                    config = {
+                        "recipient": {"x": center_x, "y": height * 0.45, "font": "Helvetica-Bold", "size": 36, "color": "#000000"},
+                        "title": {"x": center_x, "y": height * 0.7, "font": "Helvetica-Bold", "size": 48, "color": "#1a1a1a"},
+                        "course": {"x": center_x, "y": height * 0.35, "font": "Helvetica", "size": 24, "color": "#333333"},
+                        "date": {"x": width * 0.25, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
+                        "issuer": {"x": width * 0.75, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
+                        "signature_pos": {"x": width * 0.7, "y": height * 0.2, "width": 100, "height": 50},
+                        "logo_pos": {"x": center_x - 50, "y": height * 0.8, "width": 100, "height": 100},
+                        "qr_pos": {"x": width * 0.05, "y": height * 0.05, "size": 60},
+                        "serial_pos": {"x": width * 0.85, "y": height * 0.05, "font": "Helvetica", "size": 10, "color": "#999999"},
+                        "watermark": {"text": "ORIGINAL CERTIFICATE", "opacity": 0.05, "angle": 45, "size": 60}
+                    }
+                    cursor.execute(
+                        'INSERT INTO templates (name, category, orientation, config_json) VALUES (?, ?, ?, ?)',
+                        (name, category, orientation, json.dumps(config))
+                    )
+        conn.commit()
+        conn.close()
+    
+    init_db()
+
 def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
-
-def init_db():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            category TEXT,
-            orientation TEXT,
-            background TEXT,
-            config_json TEXT
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS certificates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            cert_id TEXT,
-            serial TEXT,
-            template_id INTEGER,
-            recipient TEXT,
-            course TEXT,
-            issuer TEXT,
-            file_path TEXT,
-            hash TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # Check if templates exist
-    cursor.execute('SELECT COUNT(*) FROM templates')
-    if cursor.fetchone()[0] == 0:
-        categories = {
-            'EDUCATION': 5,
-            'CHURCH & RELIGIOUS': 5,
-            'EVENTS & COMMUNITY': 5,
-            'BUSINESS & TRAINING': 5
-        }
-        
-        for category, count in categories.items():
-            for i in range(1, count + 1):
-                name = f"{category.capitalize()} Template {i}"
-                orientation = 'landscape' if (i % 2 == 0) else 'portrait'
-                
-                # Adjusting default config for better alignment
-                if orientation == 'landscape':
-                    width, height = landscape(A4)
-                else:
-                    width, height = portrait(A4)
-                
-                center_x = width / 2
-                
-                config = {
-                    "recipient": {"x": center_x, "y": height * 0.45, "font": "Helvetica-Bold", "size": 36, "color": "#000000"},
-                    "title": {"x": center_x, "y": height * 0.7, "font": "Helvetica-Bold", "size": 48, "color": "#1a1a1a"},
-                    "course": {"x": center_x, "y": height * 0.35, "font": "Helvetica", "size": 24, "color": "#333333"},
-                    "date": {"x": width * 0.25, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
-                    "issuer": {"x": width * 0.75, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
-                    "signature_pos": {"x": width * 0.7, "y": height * 0.2, "width": 100, "height": 50},
-                    "logo_pos": {"x": center_x - 50, "y": height * 0.8, "width": 100, "height": 100},
-                    "qr_pos": {"x": width * 0.05, "y": height * 0.05, "size": 60},
-                    "serial_pos": {"x": width * 0.85, "y": height * 0.05, "font": "Helvetica", "size": 10, "color": "#999999"},
-                    "watermark": {"text": "ORIGINAL CERTIFICATE", "opacity": 0.05, "angle": 45, "size": 60}
-                }
-                cursor.execute(
-                    'INSERT INTO templates (name, category, orientation, config_json) VALUES (?, ?, ?, ?)',
-                    (name, category, orientation, json.dumps(config))
-                )
-    conn.commit()
-    conn.close()
 
 def generate_pdf(cert_data, template, output_path):
     config = json.loads(template['config_json'])
@@ -225,7 +233,6 @@ def generate(template_id):
         abort(404)
         
     if request.method == 'POST':
-        action = request.form.get('action', 'download')
         cert_id = str(uuid.uuid4())
         
         cursor = db.cursor()
@@ -244,16 +251,12 @@ def generate(template_id):
             logo = request.files['logo']
             logo_path = os.path.join('static/logos', f"{cert_id}_{logo.filename}")
             logo.save(logo_path)
-        elif request.form.get('existing_logo'):
-            logo_path = request.form.get('existing_logo')
             
         sig_path = None
         if 'signature' in request.files and request.files['signature'].filename:
             sig = request.files['signature']
             sig_path = os.path.join('static/signatures', f"{cert_id}_{sig.filename}")
             sig.save(sig_path)
-        elif request.form.get('existing_sig'):
-            sig_path = request.form.get('existing_sig')
             
         data_to_hash = f"{serial}{recipient}{date}"
         cert_hash = hashlib.sha256(data_to_hash.encode()).hexdigest()
@@ -275,22 +278,6 @@ def generate(template_id):
         
         generate_pdf(cert_data, template, file_path)
         
-        if action == 'preview':
-            form_data = {
-                'recipient': recipient,
-                'course': course,
-                'title': title,
-                'date': date,
-                'issuer': issuer,
-                'existing_logo': logo_path if logo_path else '',
-                'existing_sig': sig_path if sig_path else '',
-                'action': 'download'
-            }
-            return render_template('preview.html', 
-                                 preview_url=url_for('static', filename=f'output/{file_name}'),
-                                 download_url=url_for('generate', template_id=template_id),
-                                 form_data=form_data)
-
         db.execute('''
             INSERT INTO certificates (cert_id, serial, template_id, recipient, course, issuer, file_path, hash)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -309,9 +296,12 @@ def bulk(template_id):
         abort(404)
         
     if request.method == 'POST':
+        if 'csv' not in request.files:
+            return "No CSV file uploaded", 400
+            
         csv_file = request.files['csv']
-        title = request.form['title']
-        issuer = request.form['issuer']
+        title = request.form.get('title', 'CERTIFICATE OF ACHIEVEMENT')
+        issuer = request.form.get('issuer', 'Organization')
         
         logo_path = None
         if 'logo' in request.files and request.files['logo'].filename:
@@ -326,11 +316,17 @@ def bulk(template_id):
             sig.save(sig_path)
             
         stream = BytesIO(csv_file.read())
-        reader = csv.DictReader(stream.read().decode('utf-8').splitlines())
+        try:
+            content = stream.read().decode('utf-8')
+            reader = csv.DictReader(content.splitlines())
+        except Exception as e:
+            return f"Error reading CSV: {str(e)}", 400
         
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w') as zf:
             for row in reader:
+                if not row.get('name'): continue
+                
                 cert_id = str(uuid.uuid4())
                 cursor = db.cursor()
                 cursor.execute('SELECT COUNT(*) FROM certificates')
@@ -338,8 +334,8 @@ def bulk(template_id):
                 serial = f"CERT-{datetime.now().year}-{count:06d}"
                 
                 recipient = row['name']
-                course = row['course']
-                date = row['date']
+                course = row.get('course', 'Completed Training')
+                date = row.get('date', datetime.now().strftime('%Y-%m-%d'))
                 
                 data_to_hash = f"{serial}{recipient}{date}"
                 cert_hash = hashlib.sha256(data_to_hash.encode()).hexdigest()
@@ -389,6 +385,13 @@ def verify(cert_id):
         
     return render_template('verify.html', cert=cert, status=status)
 
+@app.route('/verify/search')
+def verify_search():
+    search_id = request.args.get('id')
+    if not search_id:
+        return redirect(url_for('index'))
+    return redirect(url_for('verify', cert_id=search_id))
+
 @app.route('/__admin__/templates')
 def admin_templates():
     if request.args.get('key') != ADMIN_SECRET_KEY:
@@ -398,5 +401,6 @@ def admin_templates():
     return render_template('admin/templates.html', templates=templates, key=ADMIN_SECRET_KEY)
 
 if __name__ == '__main__':
-    init_db()
+    with app.app_context():
+        init_db()
     app.run(host='0.0.0.0', port=5000)

@@ -2,40 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bulk Generation - {{ template.name }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <a href="/">← Back</a>
-    <h1>Bulk Generate: {{ template.name }}</h1>
-    
-    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <strong>CSV Requirements:</strong>
-        <p>Your CSV must have headers: <code>name,course,date</code></p>
+    <div class="container">
+        <a href="/" class="btn btn-secondary" style="margin-bottom: 2rem;">← Back to Gallery</a>
+        
+        <div class="header" style="text-align: left;">
+            <h1>Bulk Generation: {{ template.name }}</h1>
+            <p>Upload a CSV file to generate multiple certificates at once.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
+            <div class="card animate-in">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Certificate Title</label>
+                        <input type="text" name="title" value="CERTIFICATE OF ACHIEVEMENT" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Issuer Name</label>
+                        <input type="text" name="issuer" placeholder="Global Institute" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Upload CSV File</label>
+                        <input type="file" name="csv" accept=".csv" required>
+                        <p style="font-size: 0.8rem; color: var(--text-light); margin-top: 0.5rem;">
+                            CSV columns must include: <strong>name</strong>, <strong>course</strong>, <strong>date</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Logo (Optional)</label>
+                            <input type="file" name="logo" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>Signature (Optional)</label>
+                            <input type="file" name="signature" accept="image/*">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 1rem;">
+                        🚀 Process & Download ZIP
+                    </button>
+                </form>
+            </div>
+
+            <div class="card animate-in" style="animation-delay: 0.2s">
+                <h3>CSV Format Example</h3>
+                <pre style="background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; font-size: 0.9rem;">
+name,course,date
+John Doe,Web Development,2026-02-04
+Jane Smith,Data Science,2026-02-05
+Michael Brown,UX Design,2026-02-06</pre>
+            </div>
+        </div>
     </div>
-
-    <form method="POST" enctype="multipart/form-data">
-        <label>Certificate Title
-            <input type="text" name="title" value="CERTIFICATE OF COMPLETION" required>
-        </label>
-        
-        <label>Issuer Organization
-            <input type="text" name="issuer" placeholder="Global Training Center" required>
-        </label>
-
-        <label>Upload CSV File
-            <input type="file" name="csv" accept=".csv" required>
-        </label>
-        
-        <label>Issuer Logo (Applies to all)
-            <input type="file" name="logo" accept="image/*">
-        </label>
-        
-        <label>Digital Signature (Applies to all)
-            <input type="file" name="signature" accept="image/*">
-        </label>
-        
-        <button type="submit" style="width: 100%; margin-top: 20px;">Generate & Download ZIP</button>
-    </form>
 </body>
 </html>
