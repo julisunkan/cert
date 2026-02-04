@@ -5,6 +5,8 @@ import uuid
 import hashlib
 import csv
 import zipfile
+import time
+import threading
 from datetime import datetime
 from flask import Flask, render_template, request, send_file, redirect, url_for, abort, jsonify
 from reportlab.pdfgen import canvas
@@ -15,6 +17,30 @@ import qrcode
 from io import BytesIO
 
 app = Flask(__name__)
+
+def cleanup_old_certificates():
+    """Background task to delete certificates older than 5 minutes"""
+    while True:
+        try:
+            now = time.time()
+            output_dir = 'static/output'
+            if os.path.exists(output_dir):
+                for filename in os.listdir(output_dir):
+                    if filename.endswith('.pdf') and filename != 'preview_live.pdf':
+                        file_path = os.path.join(output_dir, filename)
+                        if os.path.getmtime(file_path) < now - 300: # 5 minutes
+                            try:
+                                os.remove(file_path)
+                            except:
+                                pass
+        except Exception as e:
+            pass
+        time.sleep(60) # Run every minute
+
+# Start cleanup thread
+cleanup_thread = threading.Thread(target=cleanup_old_certificates, daemon=True)
+cleanup_thread.start()
+
 app.config['UPLOAD_FOLDER'] = 'static'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-123')
 ADMIN_SECRET_KEY = os.environ.get('ADMIN_SECRET_KEY', 'change-me')
@@ -60,14 +86,16 @@ with app.app_context():
         cursor.execute('SELECT COUNT(*) FROM templates')
         if cursor.fetchone()[0] == 0:
             categories = {
-                'EDUCATION': ('#F0F4F8', 'Helvetica-Bold', '#2D3748', 32),
-                'CHURCH & RELIGIOUS': ('#FFF5F5', 'Times-Bold', '#742A2A', 28),
-                'EVENTS & COMMUNITY': ('#F0FFF4', 'Courier-Bold', '#22543D', 30),
-                'BUSINESS & TRAINING': ('#EBF8FF', 'Helvetica-Bold', '#2B6CB0', 34)
+                'EDUCATION': ('#F0FDF4', 'Helvetica-Bold', '#166534', 32), # Green
+                'MODERN BUSINESS': ('#FFF7ED', 'Helvetica-Bold', '#9A3412', 34), # Orange
+                'VINTAGE RELIGIOUS': ('#FEF3C7', 'Times-Bold', '#78350F', 28), # Brown/Yellow
+                'COMMUNITY EVENT': ('#ECFDF5', 'Courier-Bold', '#065F46', 30), # Emerald
+                'AWARD OF EXCELLENCE': ('#FFFFFF', 'Helvetica-Bold', '#1E293B', 36), # Classic White/Slate
+                'CREATIVE WORKSHOP': ('#FFFBEB', 'Helvetica-Bold', '#B45309', 30), # Amber
             }
             
             for category, (bg_color, font, text_color, title_size) in categories.items():
-                count = 5 # Default count per category
+                count = 3 # 3 variations per category
                 for i in range(1, count + 1):
                     name = f"{category.capitalize()} Template {i}"
                     orientation = 'landscape' if (i % 2 == 0) else 'portrait'
