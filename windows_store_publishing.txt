@@ -1,0 +1,16 @@
+Short Description:
+Professional Certificate Generator - Create, manage, and verify custom certificates instantly.
+
+Full Description:
+Professional Certificate Generator is a comprehensive web-based solution for organizations, educational institutions, and event organizers to create high-quality, professional certificates. With a wide range of customizable templates, users can easily input recipient details, course names, and dates to generate PDF certificates in seconds.
+
+Key Features:
+- Multiple Professional Templates: Choose from categories like Education, Modern Business, Vintage, and more.
+- Real-time Preview: See changes instantly as you edit certificate details.
+- Bulk Generation: Upload a CSV file to generate hundreds of certificates at once.
+- QR Code Verification: Each certificate includes a unique QR code for instant authenticity verification.
+- Secure Management: Admin panel for managing templates and tracking issued certificates.
+- Custom Branding: Add your organization's logo and digital signatures.
+
+Keywords:
+certificate generator, diploma maker, bulk certificates, verify certificate, QR code verification, professional templates, education tools, award maker, digital certificates, PDF generator.
