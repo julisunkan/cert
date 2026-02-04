@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Certificate - {{ template.name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+</head>
+<body>
+    <a href="/">← Back</a>
+    <h1>Generate: {{ template.name }}</h1>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <label>Certificate Title
+            <input type="text" name="title" value="CERTIFICATE OF APPRECIATION" required>
+        </label>
+        
+        <label>Recipient Name
+            <input type="text" name="recipient" placeholder="John Doe" required>
+        </label>
+        
+        <label>Course / Event Name
+            <input type="text" name="course" placeholder="Advanced Python Mastery" required>
+        </label>
+        
+        <label>Issue Date
+            <input type="date" name="date" required>
+        </label>
+        
+        <label>Issuer Organization
+            <input type="text" name="issuer" placeholder="Tech Academy" required>
+        </label>
+        
+        <label>Issuer Logo (Optional)
+            <input type="file" name="logo" accept="image/*">
+        </label>
+        
+        <label>Digital Signature (Optional)
+            <input type="file" name="signature" accept="image/*">
+        </label>
+        
+        <button type="submit" style="width: 100%; margin-top: 20px;">Generate PDF</button>
+    </form>
+</body>
+</html>

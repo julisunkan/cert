@@ -1,0 +1,280 @@
+You are a senior Python + Flask engineer.
+
+Build a complete CERTIFICATE GENERATOR web application that creates professional, print-ready PDF certificates for courses, churches, schools, events, and trainings.
+
+The app must support SINGLE and BULK certificate generation with CSV upload, ZIP export, QR verification, digital signatures, issuer logo upload, certificate serial numbers, and anti-forgery protection.
+
+====================
+TECH STACK (MANDATORY)
+====================
+- Python 3.10+
+- Flask
+- SQLite (sqlite3, no ORM)
+- ReportLab (PDF generation)
+- qrcode (QR code generation)
+- zipfile (built-in)
+- CSV (built-in)
+- uuid, hashlib (built-in)
+- HTML, CSS, JavaScript
+- Runs on Replit
+- No external APIs
+
+====================
+RESTRICTIONS
+====================
+- NO login
+- NO registration
+- NO premium users
+- NO usage limits
+- All users have full access
+- App must run immediately after clicking Run
+
+====================
+CORE FEATURES
+====================
+
+1) CERTIFICATE TEMPLATES
+- EXACTLY 20 professionally designed certificate templates
+- Templates preloaded on first run
+- Stored in SQLite
+- Layout stored as JSON
+- Categories:
+
+  EDUCATION (5)
+  CHURCH & RELIGIOUS (5)
+  EVENTS & COMMUNITY (5)
+  BUSINESS & TRAINING (5)
+
+- Template JSON must control:
+  - Text positions
+  - Fonts
+  - Font sizes
+  - Text colors
+  - Orientation (portrait/landscape)
+  - Signature position
+  - QR code position
+  - Issuer logo position
+  - Serial number position
+  - Watermark configuration
+- Optional background image per template
+
+====================
+CERTIFICATE INPUT FORM
+====================
+
+Users can enter:
+- Recipient name
+- Certificate title
+- Course / Event name
+- Date
+- Issuer / Organization name
+- Signature name (optional)
+
+Uploads:
+- Signature image (PNG/JPG)
+- Issuer logo image (PNG/JPG)
+
+====================
+PDF EXPORT (PRINT READY)
+====================
+- A4 size
+- 300 DPI
+- Orientation based on template
+- Instant download
+- Clean typography
+
+====================
+BULK FEATURES
+====================
+
+2) CSV UPLOAD
+- Upload CSV with recipients
+- CSV format:
+  name,course,date
+- Loop through rows
+- Generate certificates per row
+
+3) BULK ZIP EXPORT
+- All generated PDFs zipped
+- Single ZIP download
+
+====================
+CERTIFICATE SERIAL NUMBERS
+====================
+
+4) SERIAL NUMBER SYSTEM
+- Each certificate must have a unique serial number
+- Serial format example:
+  CERT-2026-000001
+- Auto-increment per certificate
+- Serial number embedded visibly on certificate
+- Serial number stored in database
+- Serial number searchable via verification page
+
+====================
+QR VERIFICATION SYSTEM
+====================
+
+5) CERTIFICATE VERIFICATION
+- Each certificate has:
+  - UUID certificate ID
+  - Serial number
+- QR code links to:
+  /verify/<certificate_id>
+
+Verification page must show:
+- Valid / Invalid status
+- Recipient name
+- Course / Event
+- Issue date
+- Issuer name
+- Certificate serial number
+- Template name
+
+====================
+DIGITAL SIGNATURE
+====================
+
+6) DIGITAL SIGNATURE SUPPORT
+- Upload signature image
+- Embed into PDF
+- Position controlled by template JSON
+- Applies to single and bulk certificates
+
+====================
+ISSUER LOGO
+====================
+
+7) ISSUER LOGO SUPPORT
+- Upload organization logo
+- Embed logo into certificate PDF
+- Logo position defined in template JSON
+- Logo applies to all certificates in bulk generation
+
+====================
+WATERMARK / ANTI-FORGERY LAYER
+====================
+
+8) ANTI-FORGERY PROTECTION
+- Semi-transparent watermark text:
+  e.g. “ORIGINAL CERTIFICATE”
+- Watermark applied diagonally across certificate
+- Configurable via template JSON:
+  - Text
+  - Opacity
+  - Angle
+  - Font size
+- Optional invisible hash:
+  - SHA256 hash of (serial + recipient + date)
+  - Stored in database
+  - Used for verification integrity
+
+====================
+DATABASE (AUTO INITIALIZED)
+====================
+
+Create database automatically.
+
+Tables:
+
+templates(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  category TEXT,
+  orientation TEXT,
+  background TEXT,
+  config_json TEXT
+)
+
+certificates(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cert_id TEXT,
+  serial TEXT,
+  template_id INTEGER,
+  recipient TEXT,
+  course TEXT,
+  issuer TEXT,
+  file_path TEXT,
+  hash TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+
+====================
+HIDDEN ADMIN PANEL
+====================
+
+- No visible links
+- Hidden URL only
+
+Admin URL:
+  /__admin__/templates?key=ADMIN_SECRET_KEY
+
+Rules:
+- Admin key read from environment variable
+- Wrong key returns HTTP 404
+
+Admin features:
+- Add / edit / delete templates
+- Upload background images
+- Edit JSON layout
+- Validate JSON before save
+- Preview templates
+
+====================
+PROJECT STRUCTURE
+====================
+
+app.py
+requirements.txt
+database.db
+static/
+  output/
+  qr/
+  signatures/
+  logos/
+  backgrounds/
+templates/
+  index.html
+  editor.html
+  preview.html
+  bulk.html
+  verify.html
+  admin/
+
+====================
+IMPLEMENTATION RULES
+====================
+- Use sqlite3 only
+- No ORMs
+- Auto-create folders
+- Robust error handling
+- Secure file uploads
+- Clean, commented code
+- No placeholder logic
+- App must not crash on reload
+
+====================
+UI REQUIREMENTS
+====================
+- Clean, modern UI
+- Template grid with categories
+- Bulk upload page
+- Mobile responsive
+- Minimal CSS
+
+====================
+FINAL OUTPUT
+====================
+- Fully working Flask app
+- SQLite auto-initialized
+- 20 preloaded certificate templates
+- Issuer logo support works
+- Serial number system works
+- Watermark / anti-forgery works
+- Bulk CSV + ZIP export works
+- QR verification works
+- Digital signature works
+- Admin panel secured and functional
+
+Generate the COMPLETE working codebase now.
+

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Verification</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+        .status { padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; }
+        .valid { background: #d4edda; color: #155724; }
+        .invalid { background: #f8d7da; color: #721c24; }
+        .details { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <a href="/">← Home</a>
+    <h1>Verification Result</h1>
+    
+    {% if cert %}
+        <div class="status valid">✓ VERIFIED: {{ status }}</div>
+        
+        <div class="details">
+            <p><strong>Serial Number:</strong> {{ cert.serial }}</p>
+            <p><strong>Recipient:</strong> {{ cert.recipient }}</p>
+            <p><strong>Course/Event:</strong> {{ cert.course }}</p>
+            <p><strong>Issuer:</strong> {{ cert.issuer }}</p>
+            <p><strong>Issued On:</strong> {{ cert.created_at }}</p>
+            <p><strong>Template:</strong> {{ cert.template_name }}</p>
+            <p><strong>Security ID:</strong> {{ cert.cert_id }}</p>
+        </div>
+    {% else %}
+        <div class="status invalid">✗ INVALID CERTIFICATE</div>
+        <p>The certificate ID or serial number provided does not exist in our records.</p>
+    {% endif %}
+</body>
+</html>

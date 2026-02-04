@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bulk Generation - {{ template.name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+</head>
+<body>
+    <a href="/">← Back</a>
+    <h1>Bulk Generate: {{ template.name }}</h1>
+    
+    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>CSV Requirements:</strong>
+        <p>Your CSV must have headers: <code>name,course,date</code></p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label>Certificate Title
+            <input type="text" name="title" value="CERTIFICATE OF COMPLETION" required>
+        </label>
+        
+        <label>Issuer Organization
+            <input type="text" name="issuer" placeholder="Global Training Center" required>
+        </label>
+
+        <label>Upload CSV File
+            <input type="file" name="csv" accept=".csv" required>
+        </label>
+        
+        <label>Issuer Logo (Applies to all)
+            <input type="file" name="logo" accept="image/*">
+        </label>
+        
+        <label>Digital Signature (Applies to all)
+            <input type="file" name="signature" accept="image/*">
+        </label>
+        
+        <button type="submit" style="width: 100%; margin-top: 20px;">Generate & Download ZIP</button>
+    </form>
+</body>
+</html>
