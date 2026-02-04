@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Preview Certificate</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+</head>
+<body>
+    <a href="javascript:history.back()">← Back to Editor</a>
+    <h1>Certificate Preview</h1>
+    <div style="text-align: center; margin: 20px 0;">
+        <iframe src="{{ preview_url }}" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+        <form method="POST" action="{{ download_url }}">
+            {% for key, value in form_data.items() %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endfor %}
+            <button type="submit">Confirm & Download PDF</button>
+        </form>
+    </div>
+</body>
+</html>

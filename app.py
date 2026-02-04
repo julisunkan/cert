@@ -183,6 +183,7 @@ def generate(template_id):
         abort(404)
         
     if request.method == 'POST':
+        action = request.form.get('action', 'download')
         cert_id = str(uuid.uuid4())
         
         # Serial number generation
@@ -202,12 +203,16 @@ def generate(template_id):
             logo = request.files['logo']
             logo_path = os.path.join('static/logos', f"{cert_id}_{logo.filename}")
             logo.save(logo_path)
+        elif request.form.get('existing_logo'):
+            logo_path = request.form.get('existing_logo')
             
         sig_path = None
         if 'signature' in request.files and request.files['signature'].filename:
             sig = request.files['signature']
             sig_path = os.path.join('static/signatures', f"{cert_id}_{sig.filename}")
             sig.save(sig_path)
+        elif request.form.get('existing_sig'):
+            sig_path = request.form.get('existing_sig')
             
         # Integrity Hash
         data_to_hash = f"{serial}{recipient}{date}"
@@ -230,6 +235,22 @@ def generate(template_id):
         
         generate_pdf(cert_data, template, file_path)
         
+        if action == 'preview':
+            form_data = {
+                'recipient': recipient,
+                'course': course,
+                'title': title,
+                'date': date,
+                'issuer': issuer,
+                'existing_logo': logo_path if logo_path else '',
+                'existing_sig': sig_path if sig_path else '',
+                'action': 'download'
+            }
+            return render_template('preview.html', 
+                                 preview_url=url_for('static', filename=f'output/{file_name}'),
+                                 download_url=url_for('generate', template_id=template_id),
+                                 form_data=form_data)
+
         db.execute('''
             INSERT INTO certificates (cert_id, serial, template_id, recipient, course, issuer, file_path, hash)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)

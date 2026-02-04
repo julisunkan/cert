@@ -9,7 +9,8 @@
     <a href="/">← Back</a>
     <h1>Generate: {{ template.name }}</h1>
     
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" id="cert-form">
+        <input type="hidden" name="action" id="form-action" value="preview">
         <label>Certificate Title
             <input type="text" name="title" value="CERTIFICATE OF APPRECIATION" required>
         </label>
@@ -38,7 +39,17 @@
             <input type="file" name="signature" accept="image/*">
         </label>
         
-        <button type="submit" style="width: 100%; margin-top: 20px;">Generate PDF</button>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="submitForm('preview')" style="flex: 1;">Preview Certificate</button>
+            <button type="button" onclick="submitForm('download')" style="flex: 1; background-color: #2e7d32; color: white;">Direct Download</button>
+        </div>
     </form>
+
+    <script>
+        function submitForm(action) {
+            document.getElementById('form-action').value = action;
+            document.getElementById('cert-form').submit();
+        }
+    </script>
 </body>
 </html>
