@@ -60,13 +60,13 @@ with app.app_context():
         cursor.execute('SELECT COUNT(*) FROM templates')
         if cursor.fetchone()[0] == 0:
             categories = {
-                'EDUCATION': 5,
-                'CHURCH & RELIGIOUS': 5,
-                'EVENTS & COMMUNITY': 5,
-                'BUSINESS & TRAINING': 5
+                'EDUCATION': ('#F0F4F8', 'Helvetica-Bold', '#2D3748', 32),
+                'CHURCH & RELIGIOUS': ('#FFF5F5', 'Times-Bold', '#742A2A', 28),
+                'EVENTS & COMMUNITY': ('#F0FFF4', 'Courier-Bold', '#22543D', 30),
+                'BUSINESS & TRAINING': ('#EBF8FF', 'Helvetica-Bold', '#2B6CB0', 34)
             }
             
-            for category, count in categories.items():
+            for category, (bg_color, font, text_color, title_size) in categories.items():
                 for i in range(1, count + 1):
                     name = f"{category.capitalize()} Template {i}"
                     orientation = 'landscape' if (i % 2 == 0) else 'portrait'
@@ -79,8 +79,8 @@ with app.app_context():
                     center_x = width / 2
                     
                     config = {
-                        "recipient": {"x": center_x, "y": height * 0.45, "font": "Helvetica-Bold", "size": 36, "color": "#000000"},
-                        "title": {"x": center_x, "y": height * 0.7, "font": "Helvetica-Bold", "size": 48, "color": "#1a1a1a"},
+                        "recipient": {"x": center_x, "y": height * 0.45, "font": font, "size": 36, "color": text_color},
+                        "title": {"x": center_x, "y": height * 0.7, "font": font, "size": title_size, "color": text_color},
                         "course": {"x": center_x, "y": height * 0.35, "font": "Helvetica", "size": 24, "color": "#333333"},
                         "date": {"x": width * 0.25, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
                         "issuer": {"x": width * 0.75, "y": height * 0.15, "font": "Helvetica", "size": 14, "color": "#666666"},
@@ -91,8 +91,8 @@ with app.app_context():
                         "watermark": {"text": "ORIGINAL CERTIFICATE", "opacity": 0.05, "angle": 45, "size": 60}
                     }
                     cursor.execute(
-                        'INSERT INTO templates (name, category, orientation, config_json) VALUES (?, ?, ?, ?)',
-                        (name, category, orientation, json.dumps(config))
+                        'INSERT INTO templates (name, category, orientation, background, config_json) VALUES (?, ?, ?, ?, ?)',
+                        (name, category, orientation, bg_color, json.dumps(config))
                     )
         conn.commit()
         conn.close()
@@ -113,9 +113,13 @@ def generate_pdf(cert_data, template, output_path):
     
     # Background
     if template['background']:
-        bg_path = os.path.join('static/backgrounds', template['background'])
-        if os.path.exists(bg_path):
-            c.drawImage(bg_path, 0, 0, width=w, height=h)
+        if template['background'].startswith('#'):
+            c.setFillColor(HexColor(template['background']))
+            c.rect(0, 0, w, h, fill=1)
+        else:
+            bg_path = os.path.join('static/backgrounds', template['background'])
+            if os.path.exists(bg_path):
+                c.drawImage(bg_path, 0, 0, width=w, height=h)
             
     # Watermark
     wm = config.get('watermark', {})
