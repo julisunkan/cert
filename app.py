@@ -433,6 +433,14 @@ def admin_templates():
     templates = db.execute('SELECT * FROM templates').fetchall()
     return render_template('admin/templates.html', templates=templates, key=ADMIN_SECRET_KEY)
 
+@app.route('/manifest.json')
+def manifest():
+    return send_file('static/manifest.json')
+
+@app.route('/service-worker.js')
+def service_worker():
+    return send_file('static/service-worker.js')
+
 if __name__ == '__main__':
     with app.app_context():
         init_db()
