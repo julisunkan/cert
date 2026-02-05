@@ -47,13 +47,13 @@ ADMIN_SECRET_KEY = os.environ.get('ADMIN_SECRET_KEY', 'change-me')
 
 DATABASE = 'database.db'
 
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
 # Ensure DB is initialized
 with app.app_context():
-    def get_db():
-        conn = sqlite3.connect(DATABASE)
-        conn.row_factory = sqlite3.Row
-        return conn
-
     def init_db():
         conn = get_db()
         cursor = conn.cursor()
@@ -204,13 +204,10 @@ def generate_pdf(cert_data, template, output_path):
         
     # QR Code
     qr_url = f"{request.host_url}verify/{cert_data['cert_id']}"
-    qr = qrcode.QRCode(version=1, box_size=5, border=1)
-    qr.add_data(qr_url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
+    qr = qrcode.make(qr_url)
     
     qr_io = BytesIO()
-    img.save(qr_io, format='PNG')
+    qr.save(qr_io, format='PNG')
     qr_io.seek(0)
     
     qr_pos = config['qr_pos']
@@ -435,11 +432,11 @@ def admin_templates():
 
 @app.route('/manifest.json')
 def manifest():
-    return send_file('static/manifest.json')
+    return send_file('static/manifest.json', mimetype='application/manifest+json')
 
 @app.route('/service-worker.js')
 def service_worker():
-    return send_file('static/service-worker.js')
+    return send_file('static/service-worker.js', mimetype='application/javascript')
 
 if __name__ == '__main__':
     with app.app_context():
